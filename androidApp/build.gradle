@@ -1,0 +1,53 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'kotlin-android-extensions'
+}
+
+group = 'com.sensormaticsolutions'
+version = '1.0'
+
+android {
+    compileSdkVersion AndroidSdk.compile
+    defaultConfig {
+        applicationId 'com.sensormaticsolutions.androidApp'
+        minSdkVersion AndroidSdk.min
+        targetSdkVersion AndroidSdk.target
+        versionCode 1
+        versionName '1.0'
+    }
+    buildTypes {
+        'release' {
+            minifyEnabled false
+        }
+    }
+    buildFeatures {
+        compose = true
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_11.toString()
+        useIR = true
+    }
+}
+
+dependencies {
+    implementation project(':shared')
+    implementation AndroidX.coreKtx
+    implementation AndroidX.appcompat
+    implementation AndroidX.activityCompose
+    implementation AndroidX.material
+    implementation Compose.layout
+    implementation Compose.core
+    implementation Compose.material
+    implementation Compose.materialIconsExtended
+    implementation Compose.constraintLayout
+    implementation Compose.tooling
+    implementation Compose.runtime
+    implementation Compose.runtimeLivedata
+    implementation Lifecycle.viewmodel
+    implementation Lifecycle.viewModelCompose
+}

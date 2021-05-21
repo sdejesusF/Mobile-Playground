@@ -1,0 +1,113 @@
+plugins {
+    id 'org.jetbrains.kotlin.multiplatform'
+    id 'com.android.library'
+    id 'kotlin-android-extensions'
+    id 'kotlinx-serialization'
+    id 'com.squareup.sqldelight'
+}
+
+group = 'com.sensormaticsolutions'
+version = '1.0'
+
+android {
+    compileSdkVersion AndroidSdk.compile
+    sourceSets.main.manifest.srcFile('src/androidMain/AndroidManifest.xml')
+    defaultConfig {
+        minSdkVersion AndroidSdk.min
+        targetSdkVersion AndroidSdk.target
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+}
+
+android {
+    configurations {
+        create("androidTestApi")
+        create("androidTestDebugApi")
+        create("androidTestReleaseApi")
+        create("testApi")
+        create("testDebugApi")
+        create("testReleaseApi")
+    }
+}
+
+kotlin {
+    android()
+    ios {
+        binaries {
+            framework {
+                baseName = 'shared'
+            }
+        }
+    }
+    sourceSets {
+        commonMain {
+            dependencies {
+                // Coroutines
+                implementation Coroutines.core
+
+                // Ktor
+                implementation Ktor.clientCore
+                implementation Ktor.clientJson
+                implementation Ktor.clientLogging
+                implementation Ktor.clientSerialization
+                implementation Ktor.clientAuth
+
+                // Kotlinx Serialization
+                implementation Serialization.core
+
+                // SQL Delight
+                implementation SqlDelight.runtime
+                implementation SqlDelight.coroutineExtensions
+
+                // koin
+                implementation Koin.core
+                implementation Koin.test
+            }
+        }
+        commonTest {
+            dependencies {
+                implementation kotlin('test-common')
+                implementation kotlin('test-annotations-common')
+            }
+        }
+        androidMain {
+            dependencies {
+                implementation Ktor.clientAndroid
+                implementation SqlDelight.androidDriver
+            }
+        }
+        androidTest {
+            dependencies {
+                implementation kotlin('test-junit')
+                implementation 'junit:junit:4.13'
+            }
+        }
+        iosMain {
+            dependencies {
+                implementation Ktor.clientIos
+                implementation SqlDelight.nativeDriver
+            }
+        }
+        iosTest {
+
+        }
+    }
+}
+
+task(packForXcode, type: Sync) {
+    group = 'build'
+    def mode = System.getenv('CONFIGURATION') ?: 'DEBUG'
+    def sdkName = System.getenv('SDK_NAME') ?: 'iphonesimulator'
+    def targetName = 'ios' + (sdkName.startsWith('iphoneos') ? 'Arm64' : 'X64')
+    def framework = kotlin.targets[targetName].binaries.getFramework(mode)
+    inputs.property('mode', mode)
+    dependsOn(framework.linkTask)
+    def targetDir = new File(buildDir, 'xcode-frameworks')
+    from({ framework.outputDirectory })
+    into(targetDir)
+}
+
+tasks.getByName('build').dependsOn(packForXcode)
